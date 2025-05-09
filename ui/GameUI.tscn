@@ -1,0 +1,163 @@
+[gd_scene load_steps=2 format=3 uid="uid://buqymbyk271wg"]
+
+[ext_resource type="Script" path="res://ui/GameUI.gd" id="1_ui_script"]
+
+[node name="GameUI" type="CanvasLayer"]
+script = ExtResource("1_ui_script")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+# Add theme overrides for margins, e.g., theme_override_constants/margin_left = 10
+
+	[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+	layout_mode = 2
+	# theme_override_constants/separation = 10
+
+		[node name="PlayerStatusBox" type="PanelContainer" parent="MarginContainer/VBoxContainer"]
+		layout_mode = 2
+		# custom_minimum_size = Vector2(280, 0)
+			[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer/PlayerStatusBox"]
+			layout_mode = 2
+				[node name="PlayerHPLabel" type="Label" parent="MarginContainer/VBoxContainer/PlayerStatusBox/HBoxContainer"]
+				layout_mode = 2
+				text = "HP: 100/100"
+				[node name="PlayerHPBar" type="ProgressBar" parent="MarginContainer/VBoxContainer/PlayerStatusBox/HBoxContainer"]
+				layout_mode = 2
+				size_flags_horizontal = 3 # Expand
+				value = 100.0
+				show_percentage = false
+
+			[node name="HBoxContainer2" type="HBoxContainer" parent="MarginContainer/VBoxContainer/PlayerStatusBox"]
+			layout_mode = 2
+				[node name="PlayerStaminaLabel" type="Label" parent="MarginContainer/VBoxContainer/PlayerStatusBox/HBoxContainer2"]
+				layout_mode = 2
+				text = "Stamina: 100/100"
+				[node name="PlayerStaminaBar" type="ProgressBar" parent="MarginContainer/VBoxContainer/PlayerStatusBox/HBoxContainer2"]
+				layout_mode = 2
+				size_flags_horizontal = 3
+				value = 100.0
+				show_percentage = false
+
+			[node name="PlayerLevelLabel" type="Label" parent="MarginContainer/VBoxContainer/PlayerStatusBox"]
+			layout_mode = 2
+			text = "Level: 1"
+			[node name="PlayerXPBar" type="ProgressBar" parent="MarginContainer/VBoxContainer/PlayerStatusBox"]
+			layout_mode = 2
+			value = 0.0
+			show_percentage = false
+			[node name="PlayerXPLabel" type="Label" parent="MarginContainer/VBoxContainer/PlayerStatusBox"]
+			layout_mode = 2
+			text = "XP: 0/30"
+			[node name="ProficiencyLabel" type="Label" parent="MarginContainer/VBoxContainer/PlayerStatusBox"]
+			layout_mode = 2
+			text = "Proficiency: 0%"
+			[node name="PlayerStatusTextLabel" type="Label" parent="MarginContainer/VBoxContainer/PlayerStatusBox"]
+			layout_mode = 2
+			text = ""
+			custom_minimum_size = Vector2(0, 20) # Min height for status text
+
+		[node name="EnemyStatusBox" type="PanelContainer" parent="MarginContainer/VBoxContainer"]
+		layout_mode = 2
+		# custom_minimum_size = Vector2(280, 0)
+			[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/EnemyStatusBox"]
+			layout_mode = 2
+				[node name="EnemyNameLabel" type="Label" parent="MarginContainer/VBoxContainer/EnemyStatusBox/VBoxContainer"]
+				layout_mode = 2
+				text = "Opponent: Rat"
+				[node name="EnemyHPBar" type="ProgressBar" parent="MarginContainer/VBoxContainer/EnemyStatusBox/VBoxContainer"]
+				layout_mode = 2
+				value = 100.0
+				show_percentage = false
+				[node name="EnemyHPLabel" type="Label" parent="MarginContainer/VBoxContainer/EnemyStatusBox/VBoxContainer"]
+				layout_mode = 2
+				text = "HP: ??/??"
+				[node name="EnemyFlavorTextLabel" type="Label" parent="MarginContainer/VBoxContainer/EnemyStatusBox/VBoxContainer"]
+				layout_mode = 2
+				text = "Flavor text..."
+
+		[node name="CombatLogPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer"]
+		layout_mode = 2
+		size_flags_vertical = 3 # Expand to take available vertical space
+		custom_minimum_size = Vector2(0, 100)
+			[node name="CombatLogRichText" type="RichTextLabel" parent="MarginContainer/VBoxContainer/CombatLogPanel"]
+			layout_mode = 2
+			bbcode_enabled = true
+			text = "Combat log started...
+"
+			scroll_following = true
+			selection_enabled = true # if you want users to be able to select text
+
+		[node name="WaveInfoLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+		layout_mode = 2
+		text = "Wave: 1"
+		horizontal_alignment = 1 # Center
+
+		[node name="CurrentPowerUpsPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer"]
+		layout_mode = 2
+			[node name="CurrentPowerUpsListLabel" type="Label" parent="MarginContainer/VBoxContainer/CurrentPowerUpsPanel"]
+			layout_mode = 2
+			text = "Acquired Power-ups:
+- None yet..."
+
+[node name="PowerUpSelectionPanel" type="PanelContainer" parent="."]
+# Anchored to center, hidden by default
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+transform_pivot_offset = Vector2(150, 100) # Adjust based on final size
+custom_minimum_size = Vector2(300, 200)
+# Set position in _ready or use margins to center if not using anchors_preset = 8 properly
+	[node name="MarginContainer" type="MarginContainer" parent="PowerUpSelectionPanel"]
+	layout_mode = 2
+	# theme_override_constants/margin_left = 10 (etc. for all sides)
+		[node name="VBoxContainer" type="VBoxContainer" parent="PowerUpSelectionPanel/MarginContainer"]
+		layout_mode = 2
+			[node name="TitleLabel" type="Label" parent="PowerUpSelectionPanel/MarginContainer/VBoxContainer"]
+			layout_mode = 2
+			text = "Level Up! Choose a Power-up:"
+			horizontal_alignment = 1 # Center
+			[node name="PowerUpOptionsContainer" type="VBoxContainer" parent="PowerUpSelectionPanel/MarginContainer/VBoxContainer"]
+			layout_mode = 2
+			size_flags_vertical = 3
+			# Buttons will be added here from code
+
+[node name="GameOverScreen" type="PanelContainer" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+transform_pivot_offset = Vector2(150, 100)
+custom_minimum_size = Vector2(300, 200)
+	[node name="MarginContainer" type="MarginContainer" parent="GameOverScreen"]
+	layout_mode = 2
+		[node name="VBoxContainer" type="VBoxContainer" parent="GameOverScreen/MarginContainer"]
+		layout_mode = 2
+			[node name="GameOverLabel" type="Label" parent="GameOverScreen/MarginContainer/VBoxContainer"]
+			layout_mode = 2
+			text = "YOU DIED"
+			horizontal_alignment = 1
+			# Add font size/color theme overrides in editor
+			[node name="WaveSurvivedLabel" type="Label" parent="GameOverScreen/MarginContainer/VBoxContainer"]
+			layout_mode = 2
+			text = "Survived: Wave X"
+			horizontal_alignment = 1
+			[node name="LevelReachedLabel" type="Label" parent="GameOverScreen/MarginContainer/VBoxContainer"]
+			layout_mode = 2
+			text = "Level Reached: Y"
+			horizontal_alignment = 1
+			[node name="RestartButton" type="Button" parent="GameOverScreen/MarginContainer/VBoxContainer"]
+			layout_mode = 2
+			text = "Try Again"
+			[connection signal="pressed" from="GameOverScreen/MarginContainer/VBoxContainer/RestartButton" to="." method="_on_restart_button_pressed"]
+

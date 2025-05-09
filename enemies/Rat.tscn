@@ -1,0 +1,18 @@
+[gd_scene load_steps=2 format=3 uid="uid://dklf2dcvba2k4"]
+
+[ext_resource type="Script" path="res://enemies/Rat.gd" id="1_xyz12"]
+
+[node name="Rat" type="CharacterBody2D"]
+script = ExtResource("1_xyz12")
+collision_layer = 2 # Example: different layer for enemies
+collision_mask = 1  # Example: only collides with player/world
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+# Assign rat texture here
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+# Define collision shape for the rat
+
+# Optional: Add an Area2D for player detection if you prefer that over distance checks
+#[node name="PlayerDetectionArea" type="Area2D" parent="."]
+#  [node name="CollisionShape2D" type="CollisionShape2D" parent="PlayerDetectionArea"]

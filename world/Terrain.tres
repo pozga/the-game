@@ -1,0 +1,13 @@
+[gd_resource type="TileSet" load_steps=2 format=3 uid="uid://dy7wsavrb67sw"]
+
+# This is a placeholder TileSet resource.
+# You will need to:
+# 1. Add a texture (your tilesheet) to this TileSet in the Godot editor.
+# 2. Define tiles, their regions, and collision shapes within the editor.
+
+[resource]
+# tile_size = Vector2i(20, 20) # Set to your TILE_SIZE from JS
+# Example of adding a source image (atlas)
+# [resource name="tilesheet" type="TileSetAtlasSource" id="1_atlas"]
+# texture = ExtResource("path/to/your/tilesheet.png") # Replace with actual path to your tilesheet image
+# Define tiles here using the editor or by adding to this resource file manually (more complex)

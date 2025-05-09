@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://dadsxvw0gycx1"]
+
+[node name="PowerUpChoiceButton" type="PanelContainer"]
+# Or use a MarginContainer if you want padding around the button itself
+
+[node name="Button" type="Button" parent="."]
+layout_mode = 2
+text = "Power-up Name (Description)"
+# Set size flags if needed, or let VBoxContainer in GameUI handle it.

@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3 uid="uid://bgyx0ygrc7v0v"]
+
+[ext_resource type="Script" path="res://enemies/KingRat.gd" id="1_qwert"]
+
+[node name="KingRat" type="CharacterBody2D"]
+script = ExtResource("1_qwert")
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+# Assign King Rat texture here. It might be larger or different.
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+# Define collision shape for the King Rat.

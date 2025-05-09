@@ -1,0 +1,35 @@
+[gd_scene load_steps=3 format=3 uid="uid://cvsfgnsg00swy"]
+
+[ext_resource type="Script" path="res://world/Game.gd" id="1_main"]
+[ext_resource type="PackedScene" uid="uid://crix0c5mscjyb" path="res://player/Player.tscn" id="2_player"]
+# Note: If your GameUI is a separate scene, you'll preload it like the player.
+# [ext_resource type="PackedScene" uid="uid://your_game_ui_uid" path="res://ui/GameUI.tscn" id="3_game_ui"]
+
+[node name="Game" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="TerrainTileMap" type="TileMap" parent="."]
+# Assign your TileSet resource (Terrain.tres) here in the editor
+# You will draw your map levels using this TileMap
+format = 2 # Or format appropriate for your Godot version's TileMap
+# tile_set = ExtResource( "res://world/Terrain.tres" ) # Example once .tres is made
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+# Initial position will be set by Player.gd or here if needed
+position = Vector2(300, 200) 
+
+[node name="GameUI" type="CanvasLayer" parent="."]
+# You will build your UI elements as children of this node or instance GameUI.tscn here
+# Example: Instance GameUI.tscn if it's a separate scene
+# [node name="GameUIScene" parent="GameUI" instance=ExtResource("3_game_ui")]
+
+[node name="EnemySpawnPoints" type="Node2D" parent="."]
+# Add Position2D nodes as children of this to define specific spawn locations
+# [node name="SpawnPoint1" type="Position2D" parent="EnemySpawnPoints"]
+# position = Vector2(100, 100)
+# [node name="SpawnPoint2" type="Position2D" parent="EnemySpawnPoints"]
+# position = Vector2(500, 300)
+
+# Connections from player signals to Game.gd methods (do this in Godot Editor or via code in _ready)
+# Example: player.connect("died", Callable(self, "_on_player_died"))
+# Example: player.connect("level_up", Callable(self, "_on_player_level_up"))

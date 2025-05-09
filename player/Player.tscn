@@ -1,0 +1,22 @@
+[gd_scene load_steps=2 format=3 uid="uid://crix0c5mscjyb"]
+
+[ext_resource type="Script" path="res://player/Player.gd" id="1_abcde"]
+
+[node name="Player" type="CharacterBody2D"]
+script = ExtResource("1_abcde")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+# You will assign a texture here in the editor
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+# You will define a shape (e.g., CapsuleShape2D or RectangleShape2D) here
+
+[node name="SwordArea" type="Area2D" parent="."]
+# This area will detect enemies hit by the sword
+# It should be positioned and rotated by the Player.gd script or an AnimationPlayer
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="SwordArea"]
+# Define the shape of the sword swing (e.g., a segment or a wider rectangle)
+disabled = true # Start disabled, enable only during attack animation/timing
+
+[connection signal="body_entered" from="SwordArea" to="." method="_on_sword_area_body_entered"]
