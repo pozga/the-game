@@ -1,0 +1,940 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Witcher's Trail: Deeper Crypts</title>
+    <style>
+      /* Styles largely the same */
+      body {
+        font-family: "Georgia", serif;
+        background-color: #1a1a1a;
+        color: #c0c0c0;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        user-select: none;
+      }
+      h1 {
+        color: #b30000;
+        text-shadow: 1px 1px #000;
+      }
+      #game-container,
+      #start-screen-ui {
+        border: 2px solid #444;
+        background-color: #282828;
+        padding: 10px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
+        margin-bottom: 10px;
+        position: relative;
+        width: 600px;
+        box-sizing: border-box;
+      }
+      #start-screen-ui {
+        text-align: center;
+        padding: 20px;
+      }
+      #start-screen-ui h2 {
+        color: #f0e68c;
+      }
+      .skill-point-allocator {
+        margin: 8px 0;
+        font-size: 0.9em;
+      }
+      .skill-point-allocator label {
+        display: inline-block;
+        width: 160px;
+        text-align: right;
+        margin-right: 10px;
+      }
+      .skill-point-allocator button {
+        font-size: 0.8em;
+        padding: 2px 5px;
+        margin: 0 3px;
+        background-color: #444;
+        color: #ccc;
+        border: 1px solid #666;
+      }
+      .skill-point-allocator button:hover {
+        background-color: #555;
+      }
+      #start-game-btn {
+        background-color: #7a2020;
+        color: #ddd;
+        border: 1px solid #a04040;
+        padding: 12px 25px;
+        margin-top: 15px;
+        cursor: pointer;
+        font-family: "Georgia", serif;
+        font-size: 1.1em;
+      }
+      #start-game-btn:hover {
+        background-color: #9a3030;
+      }
+
+      canvas {
+        /* background-color: #2c3e2c; */ /* Will be drawn over by terrain */
+        border: 1px solid #555;
+        display: block;
+        cursor: crosshair;
+        image-rendering: pixelated;
+        image-rendering: -moz-crisp-edges;
+        image-rendering: crisp-edges;
+      }
+      #game-elements-container {
+        display: none;
+      }
+
+      #ui-container,
+      #controls-info,
+      #combat-log,
+      #status-display-control,
+      #powerup-selection-ui,
+      #current-powerups-ui {
+        background-color: #222;
+        padding: 10px;
+        border: 1px solid #444;
+        margin-top: 10px;
+        width: 600px;
+        box-sizing: border-box;
+      }
+      #ui-container {
+        display: flex;
+        justify-content: space-between;
+      }
+      .status-box {
+        width: 48%;
+      }
+      .status-box h3 {
+        margin-top: 0;
+        margin-bottom: 5px;
+        color: #c9a208;
+        font-size: 0.9em;
+      }
+      .bar-container {
+        width: 100%;
+        height: 18px;
+        background-color: #555;
+        border: 1px solid #777;
+        border-radius: 3px;
+        margin-bottom: 3px;
+      }
+      .bar {
+        height: 100%;
+        transition: width 0.1s linear;
+        border-radius: 2px;
+      }
+      #stamina-bar {
+        background-color: #4caf50;
+      }
+      #player-hp-bar {
+        background-color: #b30000;
+      }
+      #xp-bar {
+        background-color: #007bff;
+      }
+      #enemy-hp-bar {
+        background-color: #e06666;
+      }
+
+      #controls-info p,
+      #status-display-control p {
+        margin: 5px 0;
+        font-size: 0.9em;
+      }
+       #status-display-control span { /* For proficiency/level line */
+        font-size: 0.9em;
+      }
+      #player-level-display {
+        font-weight: bold;
+        color: #f0e68c;
+      }
+      #player-status-text {
+        font-size: 0.9em;
+        color: yellow;
+        text-align: center;
+        margin-top: 5px;
+        min-height: 1.2em; /* Reserve space */
+      }
+
+      .flavor-text {
+        font-style: italic;
+        color: #888;
+        margin-top: 5px;
+        font-size: 0.9em;
+        text-align: center;
+      }
+      #combat-log {
+        height: 80px;
+        overflow-y: auto;
+        font-size: 0.8em;
+      }
+      #combat-log p {
+        margin: 2px 0;
+        border-bottom: 1px dashed #333;
+        padding-bottom: 2px;
+      }
+      #wave-info {
+        margin-top: 5px;
+        font-weight: bold;
+        text-align: center;
+        color: #f0e68c;
+      }
+
+      #powerup-selection-ui {
+        display: none;
+        text-align: center;
+      }
+      #powerup-selection-ui h3 {
+        color: #f0e68c;
+      }
+      .powerup-choice-btn {
+        background-color: #3a5a3a;
+        color: #ddd;
+        border: 1px solid #5a7a5a;
+        padding: 8px 12px;
+        margin: 5px;
+        cursor: pointer;
+        font-family: "Georgia", serif;
+      }
+      .powerup-choice-btn:hover {
+        background-color: #4a6a4a;
+      }
+      #current-powerups-ui h4 {
+        margin-top: 0;
+        color: #f0e68c;
+      }
+      #current-powerups-list {
+        list-style-type: square;
+        padding-left: 20px;
+        font-size: 0.85em;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Witcher's Trail: Deeper Crypts</h1>
+
+    <div id="start-screen-ui">
+      <h2>Character Origin</h2>
+      <p>You have <span id="skill-points-remaining">10</span> Origin Points to spend.</p>
+      <div class="skill-point-allocator">
+        <label>Max Health (<span id="start-hp-val">50</span>):</label>
+        <button onclick="allocatePoint('hp', -1)">-</button> <span id="start-hp-points">0</span>
+        <button onclick="allocatePoint('hp', 1)">+</button>
+      </div>
+      <div class="skill-point-allocator">
+        <label>Max Stamina (<span id="start-stamina-val">100</span>):</label>
+        <button onclick="allocatePoint('stamina', -1)">-</button> <span id="start-stamina-points">0</span>
+        <button onclick="allocatePoint('stamina', 1)">+</button>
+      </div>
+      <div class="skill-point-allocator">
+        <label>Proficiency (<span id="start-proficiency-val">0</span>%):</label>
+        <button onclick="allocatePoint('proficiency', -1)">-</button> <span id="start-proficiency-points">0</span>
+        <button onclick="allocatePoint('proficiency', 1)">+</button>
+      </div>
+      <div class="skill-point-allocator">
+        <label>Base Speed (<span id="start-speed-val">2.0</span>):</label>
+        <button onclick="allocatePoint('speed', -1)">-</button> <span id="start-speed-points">0</span>
+        <button onclick="allocatePoint('speed', 1)">+</button>
+      </div>
+      <button id="start-game-btn" onclick="initializeGame()">Begin Your Trail</button>
+    </div>
+
+    <div id="game-elements-container">
+      <div id="game-container">
+        <canvas id="gameCanvas" width="600" height="400"></canvas>
+      </div>
+
+      <div id="status-display-control">
+        <span>Sword Proficiency: <span id="proficiency-value-display">0</span>%</span>
+        <span style="float: right">Level: <span id="player-level-display">1</span></span>
+        <p>XP: <span id="xp-value-display">0/30</span></p>
+        <div class="bar-container"><div id="xp-bar" class="bar" style="width: 0%"></div></div>
+        <p id="player-status-text"></p>
+      </div>
+
+      <div id="ui-container">
+        <div id="player-status" class="status-box">
+          <h3>Witcher</h3>
+          <p>Health (HP): <span id="player-hp-value">50/50</span></p>
+          <div class="bar-container"><div id="player-hp-bar" class="bar" style="width: 100%;"></div></div>
+          <p>Stamina: <span id="stamina-value">100/100</span></p>
+          <div class="bar-container"><div id="stamina-bar" class="bar" style="width: 100%;"></div></div>
+        </div>
+        <div id="enemy-status" class="status-box" style="display: none;"> <!-- Initially hidden -->
+          <h3>Opponent: <span id="enemy-name-display">Rat</span></h3>
+          <p>Health (HP): <span id="enemy-hp-value">?/?</span></p>
+          <div class="bar-container"><div id="enemy-hp-bar" class="bar"></div></div>
+          <p class="flavor-text" id="enemy-flavor-text">"The squeaking of rats..."</p>
+        </div>
+      </div>
+
+      <div id="powerup-selection-ui">
+        <h3>Level Up! Choose a Power-up:</h3>
+        <div id="powerup-options-container">
+        </div>
+      </div>
+      <div id="current-powerups-ui">
+        <h4>Acquired Power-ups:</h4>
+        <ul id="current-powerups-list">
+          <li>None yet...</li>
+        </ul>
+      </div>
+
+      <div id="controls-info">
+        <p>
+          <strong>Controls:</strong> [W][A][S][D] or Arrows - Move. [SPACE] - Dash. [R] - Rest. [SHIFT] - Run. Left Mouse - Attack.
+        </p>
+        <p id="wave-info">Wave: 1</p>
+      </div>
+      <div id="combat-log"><p>Choose your origin and begin...</p></div>
+    </div>
+
+    <script>
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
+      let canvasRect;
+
+      // Terrain Constants
+      const TILE_SIZE = 20; // Pixel dimensions of a single terrain tile
+      let GRID_WIDTH = canvas.width / TILE_SIZE;
+      let GRID_HEIGHT = canvas.height / TILE_SIZE;
+      const TERRAIN_FLOOR = 0;
+      const TERRAIN_WALL = 1;
+      // const TERRAIN_DIFFICULT = 2; // For later
+
+      let terrainGrid = [];
+
+      // UI Elements
+      let staminaBar,
+        staminaValueText,
+        playerHpBar,
+        playerHpValueText,
+        proficiencyValueDisplay,
+        playerLevelDisplay,
+        xpValueDisplay,
+        xpBar,
+        enemyNameDisplay,
+        enemyHpBar,
+        enemyHpValueText,
+        enemyFlavorText,
+        combatLog,
+        waveInfoText,
+        powerupSelectionUI,
+        powerupOptionsContainer,
+        currentPowerupsList,
+        startScreenUI,
+        gameElementsContainer,
+        playerStatusTextUI;
+
+      const initialSkillPoints = 10;
+      let skillPointsRemaining = initialSkillPoints;
+      let allocatedHpPoints = 0;
+      let allocatedStaminaPoints = 0;
+      let allocatedProficiencyPoints = 0;
+      let allocatedSpeedPoints = 0;
+
+      const basePlayerStats = { hp: 50, stamina: 100, proficiency: 0.0, speed: 2.0 };
+      const hpPerPoint = 8;
+      const staminaPerPoint = 12;
+      const proficiencyPerPoint = 0.04;
+      const speedPerPoint = 0.1;
+
+      const mouse = { x: 0, y: 0 };
+      const keysPressed = {};
+
+      const pixelSize = 4; // For sprites
+      const playerSprite = {
+        width: 5,
+        height: 7,
+        data: [" WW  ", " WW  ", "OWWO ", " W Y ", " W W ", "B B  ", "B B  "],
+        colors: { W: "#c0c0c0", O: "#c9a208", Y: "#FFFF00", B: "#4a2c00" },
+      };
+      const ratSprite = {
+        width: 5,
+        height: 3,
+        data: ["  N  ", " NBN ", "NBNNN"],
+        colors: { N: "#704214", B: "#000000" },
+      };
+      const kingRatSprite = {
+        width: 7,
+        height: 5,
+        data: ["   N   ", "  NBN  ", " NNBNN ", "NNBNBNN", "NNNNNNN"],
+        colors: { N: "#503004", B: "#FF0000" },
+      };
+
+      function drawPixelSprite(sprite, entityX, entityY, isFlashing = false, flashColor = "white") {
+        const drawX = Math.floor(entityX - (sprite.width * pixelSize) / 2);
+        const drawY = Math.floor(entityY - (sprite.height * pixelSize) / 2);
+        for (let r = 0; r < sprite.height; r++) {
+          for (let c = 0; c < sprite.width; c++) {
+            const char = sprite.data[r][c];
+            if (char !== " ") {
+              ctx.fillStyle = isFlashing ? flashColor : sprite.colors[char] || "#FF00FF";
+              ctx.fillRect(drawX + c * pixelSize, drawY + r * pixelSize, pixelSize, pixelSize);
+            }
+          }
+        }
+      }
+
+      let player = {};
+      const ALL_POWER_UPS = [
+        { id: "MAX_HP_SMALL", name: "Toughness I", description: "+15 Max HP", apply: (p) => { p.maxHp += 15; p.hp += 15; }},
+        { id: "MAX_HP_MEDIUM", name: "Toughness II", description: "+25 Max HP", apply: (p) => { p.maxHp += 25; p.hp += 25; }},
+        { id: "MAX_STAMINA_SMALL", name: "Endurance I", description: "+20 Max Stamina", apply: (p) => { p.maxStamina += 20; p.stamina += 20; }},
+        { id: "PROFICIENCY_SMALL", name: "Swordsmanship I", description: "+10% Proficiency", apply: (p) => (p.swordProficiency = Math.min(1, p.swordProficiency + 0.1))},
+        { id: "PROFICIENCY_MEDIUM", name: "Swordsmanship II", description: "+15% Proficiency", apply: (p) => (p.swordProficiency = Math.min(1, p.swordProficiency + 0.15))},
+        { id: "AURA_HEAL_1", name: "Restorative Aura", description: "Heal 1 HP every 2s", apply: (p) => (p.auraHealAmount = (p.auraHealAmount || 0) + 1)},
+        { id: "SHARP_BLADE_1", name: "Sharpened Blade", description: "+3 Base Damage", apply: (p) => (p.baseSwordDamage += 3)},
+        { id: "QUICK_FEET_1", name: "Quick Feet", description: "+0.3 Base Speed", apply: (p) => (p.baseSpeed += 0.3) },
+        { id: "VAMPIRIC_STRIKES_1", name: "Vampiric Strikes", description: "Heal 10% of damage dealt", apply: (p) => (p.vampiricHealPercent = (p.vampiricHealPercent || 0) + 0.1)},
+        { id: "DASH_EFFICIENCY_1", name: "Agile Dash", description: "-5 Dash Stamina Cost", apply: (p) => (p.dashCost = Math.max(5, p.dashCost - 5))},
+        { id: "IMPROVED_REGEN_1", name: "Rapid Recovery", description: "Slightly faster natural HP/Stamina Regen", apply: (p) => { p.naturalHpRegenInterval = Math.max(500, p.naturalHpRegenInterval - 500); p.baseStaminaRegenRate += 0.05; }},
+      ];
+
+      const enemies = [];
+      let activeSwing = null;
+      let currentWave = 0;
+      let kingRatSpawnedThisCycle = false;
+      const wavesBeforeKing = 3;
+      let gamePausedForLevelUp = false;
+      let gameOverFlag = false;
+      let gameRunning = false;
+
+      const baseXpPerLevel = [25, 40, 65];
+      const xpLevelMultiplier = 1.45;
+
+      // --- Terrain Functions ---
+      function generateMap() {
+        GRID_WIDTH = Math.floor(canvas.width / TILE_SIZE);
+        GRID_HEIGHT = Math.floor(canvas.height / TILE_SIZE);
+        terrainGrid = [];
+        for (let y = 0; y < GRID_HEIGHT; y++) {
+          terrainGrid[y] = [];
+          for (let x = 0; x < GRID_WIDTH; x++) {
+            if (y === 0 || y === GRID_HEIGHT - 1 || x === 0 || x === GRID_WIDTH - 1) {
+              terrainGrid[y][x] = TERRAIN_WALL; // Border walls
+            } else {
+              terrainGrid[y][x] = TERRAIN_FLOOR;
+            }
+          }
+        }
+        // Add some random simple obstacles
+        for(let i=0; i<3; i++) { // Add 3 small obstacles
+            const obsX = Math.floor(Math.random() * (GRID_WIDTH - 6)) + 3; // Avoid edges
+            const obsY = Math.floor(Math.random() * (GRID_HEIGHT - 6)) + 3;
+            const obsW = Math.floor(Math.random() * 3) + 2; // Width 2-4 tiles
+            const obsH = Math.floor(Math.random() * 3) + 2; // Height 2-4 tiles
+            for(let r = 0; r < obsH; r++) {
+                for(let c = 0; c < obsW; c++) {
+                    if(obsY + r < GRID_HEIGHT -1 && obsX + c < GRID_WIDTH -1) { // Check bounds
+                         terrainGrid[obsY+r][obsX+c] = TERRAIN_WALL;
+                    }
+                }
+            }
+        }
+      }
+
+      function drawTerrain() {
+        for (let y = 0; y < GRID_HEIGHT; y++) {
+          for (let x = 0; x < GRID_WIDTH; x++) {
+            if (terrainGrid[y][x] === TERRAIN_WALL) {
+              ctx.fillStyle = "#333333"; // Dark grey for walls
+            } else if (terrainGrid[y][x] === TERRAIN_FLOOR) {
+              ctx.fillStyle = "#253525"; // Slightly different floor color
+            }
+            // else if (terrainGrid[y][x] === TERRAIN_DIFFICULT) { // For later
+            //   ctx.fillStyle = "#543011"; // Brownish for difficult
+            // }
+            ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          }
+        }
+      }
+
+      function isImpassable(pixelX, pixelY) {
+        // Check a small area around the center of the entity for more robust collision
+        // For simplicity now, just check the direct tile the coordinate falls into
+        const gridX = Math.floor(pixelX / TILE_SIZE);
+        const gridY = Math.floor(pixelY / TILE_SIZE);
+
+        if (gridX < 0 || gridX >= GRID_WIDTH || gridY < 0 || gridY >= GRID_HEIGHT) {
+          return true; // Outside map bounds is impassable
+        }
+        return terrainGrid[gridY][gridX] === TERRAIN_WALL;
+      }
+
+
+      // --- Start Screen Logic ---
+      function updateSkillPointUI() { /* ... (same) ... */ }
+      function allocatePoint(stat, change) { /* ... (same) ... */ }
+
+      function initializeGame() {
+        staminaBar = document.getElementById("stamina-bar");
+        staminaValueText = document.getElementById("stamina-value");
+        playerHpBar = document.getElementById("player-hp-bar");
+        playerHpValueText = document.getElementById("player-hp-value");
+        proficiencyValueDisplay = document.getElementById("proficiency-value-display");
+        playerLevelDisplay = document.getElementById("player-level-display");
+        xpValueDisplay = document.getElementById("xp-value-display");
+        xpBar = document.getElementById("xp-bar");
+        enemyNameDisplay = document.getElementById("enemy-name-display");
+        enemyHpBar = document.getElementById("enemy-hp-bar");
+        enemyHpValueText = document.getElementById("enemy-hp-value");
+        enemyFlavorText = document.getElementById("enemy-flavor-text");
+        combatLog = document.getElementById("combat-log");
+        waveInfoText = document.getElementById("wave-info");
+        powerupSelectionUI = document.getElementById("powerup-selection-ui");
+        powerupOptionsContainer = document.getElementById("powerup-options-container");
+        currentPowerupsList = document.getElementById("current-powerups-list");
+        startScreenUI = document.getElementById("start-screen-ui");
+        gameElementsContainer = document.getElementById("game-elements-container");
+        playerStatusTextUI = document.getElementById("player-status-text");
+
+        generateMap(); // Generate map before placing player
+
+        // Attempt to spawn player in a passable location
+        let playerSpawnX = canvas.width / 3;
+        let playerSpawnY = canvas.height / 2;
+        let spawnAttempts = 0;
+        while(isImpassable(playerSpawnX, playerSpawnY) && spawnAttempts < 50) {
+            playerSpawnX = Math.random() * (canvas.width - TILE_SIZE * 2) + TILE_SIZE;
+            playerSpawnY = Math.random() * (canvas.height - TILE_SIZE * 2) + TILE_SIZE;
+            spawnAttempts++;
+        }
+        if(isImpassable(playerSpawnX, playerSpawnY)) { // Fallback if still couldn't find a spot
+            console.error("Could not find a passable spawn point for player after 50 attempts. Defaulting.");
+            // Find first passable tile (crude fallback)
+            outerLoop:
+            for (let y = 1; y < GRID_HEIGHT - 1; y++) {
+                for (let x = 1; x < GRID_WIDTH - 1; x++) {
+                    if (!isImpassable(x * TILE_SIZE + TILE_SIZE/2, y * TILE_SIZE + TILE_SIZE/2)) {
+                        playerSpawnX = x * TILE_SIZE + TILE_SIZE/2;
+                        playerSpawnY = y * TILE_SIZE + TILE_SIZE/2;
+                        break outerLoop;
+                    }
+                }
+            }
+        }
+
+
+        player = {
+          x: playerSpawnX,
+          y: playerSpawnY,
+          sprite: playerSprite,
+          visualSize: playerSprite.width * pixelSize,
+          baseSpeed: basePlayerStats.speed + allocatedSpeedPoints * speedPerPoint,
+          speed: basePlayerStats.speed + allocatedSpeedPoints * speedPerPoint,
+          stamina: basePlayerStats.stamina + allocatedStaminaPoints * staminaPerPoint,
+          maxStamina: basePlayerStats.stamina + allocatedStaminaPoints * staminaPerPoint,
+          hp: basePlayerStats.hp + allocatedHpPoints * hpPerPoint,
+          maxHp: basePlayerStats.hp + allocatedHpPoints * hpPerPoint,
+          swordProficiency: Math.min(1, basePlayerStats.proficiency + allocatedProficiencyPoints * proficiencyPerPoint),
+          baseSwordDamage: 10,
+          baseSwingArcWidth: Math.PI / 2.2,
+          baseSwingReach: 50,
+          staminaRegenRate: 0.35,
+          baseStaminaRegenRate: 0.35,
+          isMoving: false, isRunning: false, isResting: false,
+          movementFacingAngle: 0, attackFacingAngle: 0,
+          level: 1, xp: 0, xpToNextLevel: baseXpPerLevel[0],
+          dashSpeed: 75, dashCost: 30, dashCooldown: 1000, lastDashTime: 0,
+          acquiredPowerUps: [],
+          auraHealAmount: 0, auraHealInterval: 2000, lastAuraHealTime: 0,
+          vampiricHealPercent: 0,
+          naturalHpRegenInterval: 3000, baseNaturalHpRegenInterval: 3000, lastNaturalHealTime: 0,
+          color: "#FFFFFF"
+        };
+
+        startScreenUI.style.display = "none";
+        gameElementsContainer.style.display = "block";
+        canvasRect = canvas.getBoundingClientRect();
+        window.addEventListener("resize", () => { if (canvas) canvasRect = canvas.getBoundingClientRect(); generateMap(); }); // Regenerate map on resize
+        window.addEventListener("scroll", () => { if (canvas) canvasRect = canvas.getBoundingClientRect(); });
+        
+        addGameEventListeners();
+        updateCurrentPowerupsDisplay();
+        currentWave = 0; // Reset wave for new game
+        kingRatSpawnedThisCycle = false;
+        enemies.length = 0;
+        startNextWave(); // Call this AFTER player is initialized and map is generated
+        combatLog.innerHTML = "<p>The ancient evil stirs...</p>";
+        gameRunning = true;
+        gameOverFlag = false;
+        gamePausedForLevelUp = false;
+        updateUI();
+        gameLoop();
+      }
+
+      function createRat(x, y, isKing = false) {
+        let spawnX = x;
+        let spawnY = y;
+        let attempts = 0;
+        // Try to find a passable spawn location near the suggested x,y or random if initial is bad
+        while (isImpassable(spawnX, spawnY) && attempts < 50) {
+            spawnX = Math.random() * (canvas.width - TILE_SIZE * 2) + TILE_SIZE; // Avoid spawning in border walls
+            spawnY = Math.random() * (canvas.height - TILE_SIZE * 2) + TILE_SIZE;
+            attempts++;
+        }
+        if (isImpassable(spawnX, spawnY)) {
+            console.error(`Could not find passable spawn for rat (King: ${isKing}) at ${x},${y} after 50 random attempts. Defaulting.`);
+            // Crude fallback: find first passable tile
+            outerLoop:
+            for (let rY = 1; rY < GRID_HEIGHT - 1; rY++) {
+                for (let rX = 1; rX < GRID_WIDTH - 1; rX++) {
+                    if (!isImpassable(rX * TILE_SIZE + TILE_SIZE/2, rY * TILE_SIZE + TILE_SIZE/2)) {
+                        spawnX = rX * TILE_SIZE + TILE_SIZE/2;
+                        spawnY = rY * TILE_SIZE + TILE_SIZE/2;
+                        break outerLoop;
+                    }
+                }
+            }
+        }
+
+
+        const ratXP = isKing ? 100 : 10 + currentWave * 2;
+        const baseRat = {
+          x: spawnX, y: spawnY,
+          attackCooldown: isKing ? 1500 : 1800, lastAttackTime: 0,
+          state: "IDLE", detectionRange: isKing ? 200 : 150,
+          fleeThreshold: isKing ? 0.1 : 0.3,
+          type: isKing ? "Royal Rat" : "Common Rat",
+          xpValue: ratXP,
+          isBiting: false, biteAnimDuration: 200, biteAnimStart: 0,
+          wanderTarget: null, nextWanderDecisionTime: 0,
+        };
+        if (isKing) {
+          return { ...baseRat, sprite: kingRatSprite, visualSize: kingRatSprite.width * pixelSize, hp: 150 + currentWave * 10, maxHp: 150 + currentWave * 10, attackDamage: 10 + currentWave, speed: 1.0 };
+        } else {
+          return { ...baseRat, sprite: ratSprite, visualSize: ratSprite.width * pixelSize, hp: 25 + currentWave * 3, maxHp: 25 + currentWave * 3, attackDamage: 3 + Math.floor(currentWave / 2), speed: 1.0 + Math.random() * 0.3 + currentWave * 0.05 };
+        }
+      }
+
+      function startNextWave() {
+        currentWave++;
+        if (waveInfoText) waveInfoText.textContent = `Wave: ${currentWave}`;
+        addCombatLogMessage(`Wave ${currentWave} approaches!`, "#f0e68c");
+        // enemies.length = 0; // Not needed here if we splice on death
+        if (!kingRatSpawnedThisCycle && currentWave > wavesBeforeKing) {
+          enemies.push(createRat(canvas.width * Math.random(), canvas.height * Math.random(), true));
+          addCombatLogMessage("The Royal Rat appears!", "#FF4500");
+          kingRatSpawnedThisCycle = true;
+        } else {
+          if (kingRatSpawnedThisCycle && currentWave > wavesBeforeKing) {
+            kingRatSpawnedThisCycle = false;
+            currentWave = 1;
+            if (waveInfoText) waveInfoText.textContent = `Wave: ${currentWave} (New Cycle)`;
+            addCombatLogMessage(`A new cycle begins. Wave ${currentWave}!`, "#f0e68c");
+          }
+          const numRats = 1 + currentWave * 2;
+          for (let i = 0; i < numRats; i++) {
+            enemies.push(createRat(canvas.width * Math.random(), canvas.height * Math.random()));
+          }
+        }
+      }
+
+      function addCombatLogMessage(message, color = "#c0c0c0") { /* ... (same) ... */ }
+      function updateUI() {
+         if (!playerLevelDisplay || !gameRunning) return;
+        
+        playerLevelDisplay.textContent = player.level;
+        xpValueDisplay.textContent = `${player.xp}/${player.xpToNextLevel}`;
+        xpBar.style.width = `${(player.xp / player.xpToNextLevel) * 100}%`;
+        
+        let perc = (player.stamina / player.maxStamina) * 100;
+        staminaBar.style.width = perc + "%";
+        staminaValueText.textContent = `${Math.round(player.stamina)}/${player.maxStamina}`;
+        
+        perc = (player.hp / player.maxHp) * 100;
+        playerHpBar.style.width = perc + "%";
+        playerHpValueText.textContent = `${Math.round(player.hp)}/${player.maxHp}`;
+        
+        proficiencyValueDisplay.textContent = Math.round(player.swordProficiency * 100);
+
+        if (player.isResting) playerStatusTextUI.textContent = "Resting...";
+        else if (player.isRunning) playerStatusTextUI.textContent = "Running!";
+        else playerStatusTextUI.textContent = "";
+
+        // const activeEnemies = enemies.filter((e) => e.hp > 0); // Not needed if splicing dead enemies
+        const enemyStatusDiv = document.getElementById("enemy-status");
+        if (enemies.length > 0) { // Check live enemies directly
+          const enemyToShow = enemies.sort( 
+            (a, b) => (a.x - player.x) ** 2 + (a.y - player.y) ** 2 - ((b.x - player.x) ** 2 + (b.y - player.y) ** 2),
+          )[0];
+          enemyNameDisplay.textContent = enemyToShow.type;
+          perc = (enemyToShow.hp / enemyToShow.maxHp) * 100;
+          enemyHpBar.style.width = perc + "%";
+          enemyHpValueText.textContent = `${Math.round(enemyToShow.hp)}/${enemyToShow.maxHp}`;
+          enemyFlavorText.textContent = `${enemyToShow.type} (${enemyToShow.state})`;
+          if (enemyStatusDiv) enemyStatusDiv.style.display = "block";
+        } else {
+          if (enemyStatusDiv) enemyStatusDiv.style.display = "none";
+          if (!gameOverFlag && !gamePausedForLevelUp && gameRunning && enemies.length === 0) {
+            startNextWave();
+          }
+        }
+      }
+      function gainXP(amount) { /* ... (same) ... */ }
+      function levelUp() { /* ... (same) ... */ }
+      function presentPowerUpChoices() { /* ... (same) ... */ }
+      function selectPowerUp(powerUp) { /* ... (same) ... */ }
+      function updateCurrentPowerupsDisplay() { /* ... (same) ... */ }
+      function consumeStamina(amount) { /* ... (same) ... */ }
+      function regenerateStamina() { /* ... (same) ... */ }
+      function applyPassiveEffects() { /* ... (same) ... */ }
+      function drawPlayer() { /* ... (same) ... */ }
+      function drawEnemies() { /* ... (same, but iterates over potentially smaller 'enemies' array) ... */ }
+      function drawSwordSwing() { /* ... (same) ... */ }
+      
+      function clearCanvas() {
+        // Covered by drawTerrain now
+        // ctx.fillStyle = "#2c3e2c"; 
+        // ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      function gameLoop() {
+        if (!gameRunning && !startScreenUI.style.display.includes('none')) {
+            requestAnimationFrame(gameLoop);
+            return;
+        }
+        if (gameOverFlag || gamePausedForLevelUp) {
+          if (gamePausedForLevelUp) {
+            clearCanvas(); // Still clear for level up screen
+            drawTerrain(); // Draw terrain under player/choices
+            // drawEnemies(); // Optionally draw static enemies
+            drawPlayer();
+            updateUI();
+          }
+          requestAnimationFrame(gameLoop);
+          return;
+        }
+        if (player.hp <= 0 && !gameOverFlag) {
+          // ... (Game Over logic - same)
+        }
+
+        // clearCanvas(); // Done by drawTerrain
+        drawTerrain(); // Draw terrain first
+        handleMovement();
+        handleEnemyAI();
+        applyPassiveEffects(); 
+        regenerateStamina(); 
+
+        drawEnemies();
+        drawPlayer();
+        drawSwordSwing();
+        
+        updateUI();
+        requestAnimationFrame(gameLoop);
+      }
+
+      window.addEventListener("DOMContentLoaded", () => {
+        updateSkillPointUI();
+        startScreenUI = document.getElementById("start-screen-ui");
+        gameElementsContainer = document.getElementById("game-elements-container");
+      });
+
+      function addGameEventListeners() { /* ... (same) ... */ }
+
+      function handleMovement() {
+        if (!gameRunning || player.hp <= 0 || gamePausedForLevelUp || player.isResting) {
+          player.isMoving = false;
+          return;
+        }
+
+        let dxInput = 0;
+        let dyInput = 0;
+        if (keysPressed["w"] || keysPressed["arrowup"]) dyInput -= 1;
+        if (keysPressed["s"] || keysPressed["arrowdown"]) dyInput += 1;
+        if (keysPressed["a"] || keysPressed["arrowleft"]) dxInput -= 1;
+        if (keysPressed["d"] || keysPressed["arrowright"]) dxInput += 1;
+
+        if (dxInput !== 0 || dyInput !== 0) {
+          player.isMoving = true;
+          player.movementFacingAngle = Math.atan2(dyInput, dxInput);
+          const mag = Math.sqrt(dxInput * dxInput + dyInput * dyInput);
+          
+          const currentSpeed = player.speed; 
+          let moveX = (dxInput / mag) * currentSpeed;
+          let moveY = (dyInput / mag) * currentSpeed;
+
+          let movementStaminaCost = 0.15;
+          if (player.isRunning) movementStaminaCost *= 3;
+          
+          if (player.stamina >= movementStaminaCost) {
+            // Check X-axis movement
+            if (!isImpassable(player.x + moveX, player.y)) {
+                player.x += moveX;
+            } else { // If X is blocked, try to align with tile edge to prevent getting stuck in corners
+                if (moveX > 0) player.x = Math.floor((player.x + moveX) / TILE_SIZE) * TILE_SIZE - player.visualSize / 2 - 1;
+                else if (moveX < 0) player.x = Math.ceil((player.x + moveX) / TILE_SIZE) * TILE_SIZE + player.visualSize / 2 + 1;
+            }
+            // Check Y-axis movement
+            if (!isImpassable(player.x, player.y + moveY)) {
+                player.y += moveY;
+            } else { // If Y is blocked
+                if (moveY > 0) player.y = Math.floor((player.y + moveY) / TILE_SIZE) * TILE_SIZE - player.visualSize / 2 - 1;
+                else if (moveY < 0) player.y = Math.ceil((player.y + moveY) / TILE_SIZE) * TILE_SIZE + player.visualSize / 2 + 1;
+            }
+
+            player.x = Math.max(player.visualSize / 2, Math.min(canvas.width - player.visualSize / 2, player.x));
+            player.y = Math.max(player.visualSize / 2, Math.min(canvas.height - player.visualSize / 2, player.y));
+            consumeStamina(movementStaminaCost);
+          } else {
+            addCombatLogMessage("Too tired to move further!", "orange");
+            player.isMoving = false;
+            if(player.isRunning) player.isRunning = false; 
+          }
+        } else {
+          player.isMoving = false;
+        }
+      }
+
+      function handleDash() { /* ... (same, but ensure dash target also respects isImpassable or stops short) ... */
+        if (player.isResting) player.isResting = false;
+        if (Date.now() < player.lastDashTime + player.dashCooldown) {
+          addCombatLogMessage("Dash on cooldown!", "orange");
+          return;
+        }
+        if (consumeStamina(player.dashCost)) {
+          player.lastDashTime = Date.now();
+          const angle = (player.isMoving || (keysPressed['w'] || keysPressed['s'] || keysPressed['a'] || keysPressed['d'])) ? player.movementFacingAngle : player.attackFacingAngle;
+          const dashDistance = player.dashSpeed;
+          
+          let targetX = player.x + Math.cos(angle) * dashDistance;
+          let targetY = player.y + Math.sin(angle) * dashDistance;
+
+          // Check for impassable terrain along the dash path (simplified check at endpoint)
+          // A more robust solution would check intermediate points or use raycasting.
+          if (!isImpassable(targetX, targetY)) {
+            player.x = targetX;
+            player.y = targetY;
+          } else {
+            // Attempt to dash as far as possible until hitting a wall (simplified)
+            for (let d = dashDistance; d > 0; d -= TILE_SIZE / 2) {
+                targetX = player.x + Math.cos(angle) * d;
+                targetY = player.y + Math.sin(angle) * d;
+                if (!isImpassable(targetX, targetY)) {
+                    player.x = targetX;
+                    player.y = targetY;
+                    break;
+                }
+            }
+            addCombatLogMessage("Dash blocked by terrain!", "orange");
+          }
+
+          player.x = Math.max(player.visualSize / 2, Math.min(canvas.width - player.visualSize / 2, player.x));
+          player.y = Math.max(player.visualSize / 2, Math.min(canvas.height - player.visualSize / 2, player.y));
+          addCombatLogMessage("Dashed!", "cyan");
+        }
+      }
+      function toggleRest() { /* ... (same) ... */ }
+      function handlePlayerAttack() { /* ... (same) ... */ }
+      
+      function dealDamageToEnemy(enemy, damage) {
+        enemy.hp -= damage;
+        addCombatLogMessage(`${enemy.type} takes ${damage} damage!`, "#ff9999");
+        if (enemy.hp <= 0) {
+          enemy.hp = 0;
+          enemy.state = "DEAD";
+          addCombatLogMessage(`${enemy.type} defeated!`, "#00cc00");
+          gainXP(enemy.xpValue);
+          const index = enemies.indexOf(enemy);
+          if (index > -1) {
+            enemies.splice(index, 1);
+          }
+        }
+      }
+      function dealDamageToPlayer(damage, attackerName = "Rat") { /* ... (same) ... */ }
+
+      function handleEnemyAI() {
+        if (!gameRunning || gamePausedForLevelUp) return;
+        const time = Date.now();
+
+        enemies.forEach((enemy) => {
+          if (enemy.hp <= 0 || enemy.state === "DEAD") return;
+
+          const dxP = player.x - enemy.x;
+          const dyP = player.y - enemy.y;
+          const distP = Math.sqrt(dxP * dxP + dyP * dyP);
+
+          if (enemy.hp / enemy.maxHp < enemy.fleeThreshold && enemy.type !== "Royal Rat") {
+            enemy.state = "FLEEING";
+          } else if (distP <= (enemy.visualSize / 2 + player.visualSize / 2 + 10) && player.hp > 0) { // Increased attack trigger slightly
+            enemy.state = "ATTACKING";
+          } else if (distP <= enemy.detectionRange && player.hp > 0 && !player.isResting) {
+            enemy.state = "CHASING";
+            enemy.wanderTarget = null;
+          } else {
+            if (enemy.state !== "IDLE") enemy.wanderTarget = null;
+            enemy.state = "IDLE";
+          }
+
+          let moveX = 0;
+          let moveY = 0;
+          let intendedX = enemy.x;
+          let intendedY = enemy.y;
+
+          switch (enemy.state) {
+            case "IDLE":
+              if (!enemy.wanderTarget || Date.now() > enemy.nextWanderDecisionTime) {
+                const wanderDist = 50 + Math.random() * 50;
+                const wanderAngle = Math.random() * 2 * Math.PI;
+                enemy.wanderTarget = {
+                  x: enemy.x + Math.cos(wanderAngle) * wanderDist,
+                  y: enemy.y + Math.sin(wanderAngle) * wanderDist,
+                };
+                enemy.wanderTarget.x = Math.max(TILE_SIZE, Math.min(canvas.width - TILE_SIZE, enemy.wanderTarget.x));
+                enemy.wanderTarget.y = Math.max(TILE_SIZE, Math.min(canvas.height - TILE_SIZE, enemy.wanderTarget.y));
+                enemy.nextWanderDecisionTime = Date.now() + 3000 + Math.random() * 4000;
+              }
+              if (enemy.wanderTarget) {
+                const dxW = enemy.wanderTarget.x - enemy.x;
+                const dyW = enemy.wanderTarget.y - enemy.y;
+                const distW = Math.sqrt(dxW * dxW + dyW * dyW);
+                if (distW > enemy.speed * 0.5) {
+                  moveX = (dxW / distW) * enemy.speed * 0.3;
+                  moveY = (dyW / distW) * enemy.speed * 0.3;
+                } else {
+                  enemy.wanderTarget = null;
+                }
+              }
+              break;
+            case "CHASING":
+              if (distP > 0) {
+                moveX = (dxP / distP) * enemy.speed;
+                moveY = (dyP / distP) * enemy.speed;
+              }
+              break;
+            case "ATTACKING":
+              if (time > enemy.lastAttackTime + enemy.attackCooldown) { /* ... (attack logic same) ... */ }
+              if (Math.random() < 0.1) { 
+                  moveX = (Math.random() - 0.5) * 5; 
+                  moveY = (Math.random() - 0.5) * 5;
+              }
+              break;
+            case "FLEEING":
+              if (distP > 0) {
+                moveX = -(dxP / distP) * enemy.speed * 1.2;
+                moveY = -(dyP / distP) * enemy.speed * 1.2;
+              }
+              break;
+          }
+          
+          intendedX = enemy.x + moveX;
+          intendedY = enemy.y + moveY;
+
+          if (!isImpassable(intendedX, enemy.y)) {
+              enemy.x = intendedX;
+          }
+          if (!isImpassable(enemy.x, intendedY)) { // Check with potentially updated enemy.x
+              enemy.y = intendedY;
+          }
+          
+          enemy.x = Math.max(enemy.visualSize / 2, Math.min(canvas.width - enemy.visualSize / 2, enemy.x));
+          enemy.y = Math.max(enemy.visualSize / 2, Math.min(canvas.height - enemy.visualSize / 2, enemy.y));
+        });
+      }
+    </script>
+  </body>
+</html>
